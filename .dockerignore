@@ -1,0 +1,14 @@
+.git
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.github
+terraform
+helm
+monitoring
+docs
+scripts
+*.md
+.env
