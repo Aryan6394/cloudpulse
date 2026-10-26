@@ -1,0 +1,30 @@
+replicaCount: 2
+
+image:
+  repository: cloudpulse
+  tag: local
+  pullPolicy: IfNotPresent
+
+service:
+  port: 80
+  targetPort: 8000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+strategy:
+  maxSurge: 1
+  maxUnavailable: 0
+
+# The autoscaler needs metrics-server, which kind doesn't include.
+# It stays off locally and we turn it on in the cloud.
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
