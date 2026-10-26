@@ -1,0 +1,47 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cloudpulse-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: cloudpulse
+      rules:
+        - alert: CloudPulseHighErrorRate
+          expr: |
+            sum(rate(http_requests_total{namespace="demo",status="5xx"}[1m]))
+              / sum(rate(http_requests_total{namespace="demo",handler!="/metrics"}[1m])) > 0.05
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "CloudPulse 5xx error rate is above 5%"
+
+        - alert: CloudPulseHighLatencyP95
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le) (rate(http_request_duration_seconds_bucket{namespace="demo"}[2m]))) > 1
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "CloudPulse p95 latency is above 1s"
+
+        - alert: CloudPulsePodNotStarting
+          expr: |
+            sum(kube_pod_container_status_waiting_reason{namespace="demo",reason=~"ImagePullBackOff|ErrImagePull|CrashLoopBackOff"}) > 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "A CloudPulse pod cannot start (bad image or crash loop)"
+
+        - alert: CloudPulsePodRestarting
+          expr: increase(kube_pod_container_status_restarts_total{namespace="demo"}[10m]) > 2
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "A CloudPulse pod is restarting repeatedly"
