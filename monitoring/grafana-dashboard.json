@@ -1,0 +1,69 @@
+{
+  "title": "CloudPulse",
+  "uid": "cloudpulse-main",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Request rate (req/s)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{handler}}",
+          "expr": "sum by (handler) (rate(http_requests_total{namespace=\"demo\",handler!=\"/metrics\"}[1m]))" }
+      ]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Error rate (5xx %)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0 }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "legendFormat": "5xx %",
+          "expr": "100 * sum(rate(http_requests_total{namespace=\"demo\",status=\"5xx\"}[1m])) / sum(rate(http_requests_total{namespace=\"demo\",handler!=\"/metrics\"}[1m]))" }
+      ]
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Latency p95 (seconds)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "legendFormat": "p95",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"demo\"}[1m])))" }
+      ]
+    },
+    {
+      "id": 4, "type": "stat", "title": "Available replicas",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "refId": "A",
+          "expr": "kube_deployment_status_replicas_available{namespace=\"demo\",deployment=\"cloudpulse\"}" }
+      ]
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "CPU usage (cores) per pod",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{pod}}",
+          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"demo\",container=\"app\"}[1m]))" }
+      ]
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "Memory (working set) per pod",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{pod}}",
+          "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"demo\",container=\"app\"})" }
+      ]
+    }
+  ]
+}

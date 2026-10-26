@@ -1,0 +1,22 @@
+# Let Prometheus pick up any ServiceMonitor / PrometheusRule in the cluster
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    retention: 2d
+
+# kind has no reachable control-plane metrics endpoints, so turn these off
+# to avoid permanently firing alerts
+kubeEtcd:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+# node-exporter often fails to start on kind under WSL, and the dashboard
+# we build uses cAdvisor and kube-state-metrics instead
+nodeExporter:
+  enabled: false
